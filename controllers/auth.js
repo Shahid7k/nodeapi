@@ -1,62 +1,84 @@
-const User= require('../models/user');
-const jwt=require('jsonwebtoken')
-const expressJwt=require('express-jwt')
-require('dotenv').config()
+const User = require('../models/user');
+const jwt = require('jsonwebtoken');
+const expressJwt = require('express-jwt');
+const { TOKEN_EXPIRY_TIME } = require('../constants/tokenExpiryTime');
+require('dotenv').config();
 
+exports.signup = async (req, res) => {
+  console.log(TOKEN_EXPIRY_TIME);
+  console.log(req.body.email);
+  try {
+    const userExists = await User.findOne({ email: req.body.email });
+    console.log('Userrr:', userExists);
 
-exports.signup = async (req,res) =>{
-    console.log(req.body.emailId);
-    const userExists= await (await User.findOne({"emailId":req.body.emailId}))
-    console.log("Userrr:",userExists);
-
-    if(userExists){
-         return res.status(403).json({error:"Email is Taken! $(userExists) "});
+    if (userExists) {
+      return res.status(403).json({ error: `Email is Taken!` });
     }
-    const newUser = await new User(req.body)
-    await newUser.save()
-    res.status(200).json({message:"User Signed Up Successfully"})
+    const newUser = new User(req.body);
+    const savedUser = await newUser.save();
+    const token = jwt.sign({ _id: savedUser._id }, process.env.JWT_SECRET, {
+      expiresIn: TOKEN_EXPIRY_TIME,
+    });
+    //persist token with expiry date
+
+    //return response with user details and token
+    const { _id, firstName } = savedUser;
+    return res.json({ token, user: { _id, firstName } });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
 };
 
-exports.signin= (req,res) => {
-    //find user
-    const {emailId, password}=req.body
-    console.log("1st param - ",emailId, " 2- ",password)
-    User.findOne({emailId},(err,user)=>{
-        if(err|| !user) return res.status(401).json({
-            error:"No user with this Email Exists"
-        });
-    
-        console.log("reached")
-        //if User is not  found
-        if(! user.authenticate(password)){
-            console.log("reached 2")
-            return res.status(401).json({
-                "error":"Wrong Password"
-            })
-        }
+exports.signin = (req, res) => {
+  //find user
+  const { email, password } = req.body;
+  console.log('1st param - ', email, ' 2- ', password);
+  User.findOne({ email }, (err, user) => {
+    if (err || !user)
+      return res.status(401).json({
+        error: 'No user with this Email Exists',
+      });
 
-        console.log("reached 3");
-        //else if User is found
-        //generate Token with user id and secret
-        // const secret=;
-        const token = jwt.sign({_id:user._id }, process.env.JWT_SECRET)
-        //persist token with expiry date
-        res.cookie("t",{expire:new Date()+9989})
+    console.log('reached');
+    //if User is not  found
+    if (!user.authenticate(password)) {
+      console.log('reached 2');
+      return res.status(401).json({
+        error: 'Wrong Password',
+      });
+    }
 
-        //return response with user details and token
-        const {_id,userName,emailId}=user
-        return res.json({token,user:{_id, emailId, userName}})
-    })
+    console.log('reached 3');
+    //else if User is found
+    //generate Token with user id and secret
+    // const secret=;
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: TOKEN_EXPIRY_TIME,
+    });
+    //persist token with expiry date
 
+    //return response with user details and token
+    const { _id, firstName } = user;
+    return res.json({ token, user: { _id, firstName } });
+  });
 };
 
-exports.signout= (req,res) =>{
-    res.clearCookie("t")
-    return res.json({message:"Signed Out!"})
+exports.signout = (req, res) => {
+  return res.json({ message: 'Signed Out!' });
 };
 
 exports.requireSignIn = expressJwt({
-    secret:process.env.JWT_SECRET,
-    userProperty:'auth'
-
+  secret: process.env.JWT_SECRET,
+  getToken: function fromHeaderOrQuerystring(req) {
+    console.log(req.headers);
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.split(' ')[0] === 'Bearer'
+    ) {
+      return req.headers.authorization.split(' ')[1];
+    } else if (req.query && req.query.token) {
+      return req.query.token;
+    }
+    return null;
+  },
 });
