@@ -36,9 +36,9 @@ exports.allUsers = (req, res) => {
     res.json({ users });
   })
     .select(
-      'userName emailId gender profession country city phoneNo created updated'
+      'firstName lastName email gender profession country city phoneNo created updated'
     )
-    .sort({ userName: 1 });
+    .sort({ firstName: 1 });
 };
 
 exports.getUser = (req, res) => {
@@ -121,8 +121,8 @@ exports.addFollower = (req, res) => {
     { $push: { followers: req.body.userId } },
     { new: true }
   )
-    .populate('following', '_id userName')
-    .populate('followers', '_id userName')
+    .populate('following', '_id firstName lastName')
+    .populate('followers', '_id firstName lastName')
     .exec((err, result) => {
       if (err) {
         return res.status(400).json({
@@ -155,8 +155,8 @@ exports.removeFollower = (req, res) => {
     { $pull: { followers: req.body.userId } },
     { new: true }
   )
-    .populate('following', '_id userName')
-    .populate('followers', '_id userName')
+    .populate('following', '_id firstName lastName')
+    .populate('followers', '_id firstName lastName')
     .exec((err, result) => {
       if (err) {
         return res.status(400).json({

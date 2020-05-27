@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
   gender: String,
   country: String,
   city: String,
-  contact: String,
+  phoneNo: String,
   salt: String,
   created: {
     type: Date,
@@ -50,6 +50,9 @@ const userSchema = new mongoose.Schema({
   profession: {
     type: String,
     trim: true,
+  },
+  darkEnabled: {
+    type: Boolean,
   },
   // following:[{type:ObjectId,ref:"User"}],
   // followers:[{type:ObjectId,ref:"User"}]

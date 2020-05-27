@@ -74,7 +74,7 @@ exports.getPostsByUser = async (req, res) => {
     '-content'
   );
 
-  console.log('posts', posts);
+  // console.log('posts', posts);
 
   res.json(posts);
 
