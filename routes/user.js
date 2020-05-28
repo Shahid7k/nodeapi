@@ -16,7 +16,7 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/allusers', allUsers);
-router.get('/user/:userId', authController.requireSignIn, getUser);
+router.get('/user/:userId', getUser);
 router.put('/user/:userId', authController.requireSignIn, updateUser);
 router.delete('/user/:userId', authController.requireSignIn, deleteUser);
 router.get('/user/photo/:userId', userPic);

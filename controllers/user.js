@@ -62,27 +62,41 @@ exports.getUser = (req, res) => {
 
 // }
 
-exports.updateUser = (req, res, next) => {
-  let form = new formidable.IncomingForm();
-  form.keepExtensions = true;
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      return res.json({ error: "Photo couldn't be uploaded" });
-    }
-    let user = req.profile;
-    user = _.extend(user, fields);
-    user.updated = Date.now();
-    if (files.photo) {
-      user.photo.data = fs.readFileSync(files.photo.path);
-      user.photo.contentType = files.photo.type;
-    }
-    user.save((err, result) => {
-      if (err) return res.json({ error: err });
-      user.hashedPassword = undefined;
-      user.salt = undefined;
-      res.json(user);
-    });
-  });
+// exports.updateUser = (req, res, next) => {
+//   let form = new formidable.IncomingForm();
+//   form.keepExtensions = true;
+//   form.parse(req, (err, fields, files) => {
+//     if (err) {
+//       return res.json({ error: "Photo couldn't be uploaded" });
+//     }
+//     let user = req.profile;
+//     user = _.extend(user, fields);
+//     user.updated = Date.now();
+//     if (files.photo) {
+//       user.photo.data = fs.readFileSync(files.photo.path);
+//       user.photo.contentType = files.photo.type;
+//     }
+//     user.save((err, result) => {
+//       if (err) return res.json({ error: err });
+//       user.hashedPassword = undefined;
+//       user.salt = undefined;
+//       res.json(user);
+//     });
+//   });
+// };
+
+exports.updateUser = (req, res) => {
+  const conditions = { _id: req.params.userId };
+
+  console.log(req.body);
+  User.findOneAndUpdate(conditions, req.body)
+    .then(doc => {
+      if (!doc) {
+        return res.status(404).end();
+      }
+      return res.status(200).json(doc);
+    })
+    .catch(err => next(err));
 };
 
 exports.deleteUser = (req, res) => {
