@@ -27,10 +27,10 @@ exports.getPosts = async (req, res) => {
   // const perPage = 8;
   // let totalItems;
 
-  const posts = await Post.find({}).select('-content');
+  const posts = await Post.find({}).select('-content').sort({ created: -1 });
 
-  console.log(res);
-  console.log(posts);
+  // console.log(res);
+  // console.log(posts);
 
   res.json(posts);
 
@@ -55,7 +55,7 @@ exports.getPosts = async (req, res) => {
 exports.postsCount = (req, res) => {
   const post = Post.find()
     .select('_id')
-    .then(posts => res.status(200).json({ posts }))
+    .then(posts => res.status(200).json({length: posts.length }))
     .catch(err => console.log(err));
 };
 

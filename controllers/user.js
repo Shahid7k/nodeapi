@@ -40,6 +40,15 @@ exports.allUsers = (req, res) => {
     )
     .sort({ firstName: 1 });
 };
+exports.countUsers = (req, res) => {
+  User.find((err, users) => {
+    if (err) return res.json({ error: err });
+    res.json({length: users.length });
+  })
+    .select(
+      ' _id '
+    )
+};
 
 exports.getUser = (req, res) => {
   req.profile.hashedPassword = undefined;

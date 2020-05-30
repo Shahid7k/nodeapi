@@ -65,7 +65,7 @@ exports.getQA = (req, res) => {
 exports.quesCount = (req, res) => {
   const ques = Ques.find()
     .select('_id')
-    .then(ques => res.status(200).json({ ques }))
+    .then(ques => res.status(200).json({length:ques.length }))
     .catch(err => console.log(err));
 };
 
