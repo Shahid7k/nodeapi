@@ -9,23 +9,27 @@ const { ObjectId } = mongoose.Types;
 exports.ask = (req, res) => {
   let form = new formidable.IncomingForm();
   form.keepExtensions = true;
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      return res.status(400).json({ error: "Image couldn't be uploaded!" });
-    }
-    let ques = new Ques(fields);
-    req.profile.hashedPassword = undefined;
-    req.profile.salt = undefined;
-    ques.postedBy = req.profile;
-    if (files.photo) {
-      (ques.photo.data = fs.readFileSync(files.photo.path)),
+  try{
+    form.parse(req, async(err, fields, files) => {
+      if (err) {
+        return res.status(400).json({ error: "Image couldn't be uploaded!" });
+      }
+      console.log("FIELDS : ",fields)
+      let ques = new Ques(fields);
+      req.profile.hashedPassword = undefined;
+      req.profile.salt = undefined;
+      ques.postedBy = req.profile;
+      if (files.photo) {
+        (ques.photo.data = fs.readFileSync(files.photo.path)),
         (ques.photo.contentType = files.photo.type);
-    }
-    ques.save((err, result) => {
-      if (err) return res.json({ error: err });
-      res.json(result);
+      }
+      const savedQues = await ques.save();
+      res.json(savedQues);
     });
-  });
+  }catch(error){
+    res.status(500).json({ error: error.message });
+  }
+
 };
 
 // exports.getQues = async (req, res) => {
