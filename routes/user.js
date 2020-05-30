@@ -11,11 +11,13 @@ const {
   addFollowing,
   removeFollower,
   removeFollowing,
+  countUsers
 } = require('../controllers/user');
 const express = require('express');
 const router = express.Router();
 
 router.get('/allusers', allUsers);
+router.get('/usersCount',countUsers);
 router.get('/user/:userId', getUser);
 router.put('/user/:userId', authController.requireSignIn, updateUser);
 router.delete('/user/:userId', authController.requireSignIn, deleteUser);
