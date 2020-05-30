@@ -43,7 +43,7 @@ exports.ask = (req, res) => {
 //         .then(count => {
 //             totalItems = count;
 //             return Ques.find()
-// 				.populate('postedBy', '_id userName')
+// 				.populate('postedBy', '_id firstName')
 // 				.sort({ created: -1 })
 // 				.skip((currentPage - 1) * perPage)
 // 				.limit(perPage)
@@ -57,7 +57,7 @@ exports.ask = (req, res) => {
 
 exports.getQA = (req, res) => {
   const ques = Ques.find()
-    .populate('postedBy', 'userName')
+    .populate('postedBy', 'firstName')
     .sort({ created: -1 })
     .select('title body photo satisfied tags created  answers updated')
     .then(ques => {
@@ -76,7 +76,7 @@ exports.quesCount = (req, res) => {
 exports.getQuesByUser = (req, res) => {
   console.log('REQ_PROFILE_ID:', req.profile._id);
   Ques.find({ postedBy: req.profile._id })
-    .populate('postedBy', '_id userName')
+    .populate('postedBy', '_id firstName')
     .select('_id title tags body satisfied created answers updated')
     .sort({ created: -1 })
     .exec((err, ques) => {
@@ -143,19 +143,21 @@ exports.singleQues = (req, res) => {
 
 exports.answer = (req, res) => {
   let answer = req.body.answer;
+  console.log("answer : ",answer.answer)
+  answer.text=answer.answer;
   answer.postedBy = req.body.userId;
   Ques.findByIdAndUpdate(
     req.body.quesId,
     { $push: { answers: answer } },
     { new: true }
   )
-    .populate('answers.postedBy', '_id userName')
-    .populate('postedBy', '_id userName')
+    .populate('answers.postedBy', '_id firstName')
+    .populate('postedBy', '_id firstName')
     .sort({ created: -1 })
     .exec((err, result) => {
       if (err) return res.status(400).json({ error: err });
       else {
-        console.log('answer - ', result);
+        console.log('Response - ', result);
         return res.json(result);
       }
     });
@@ -199,8 +201,8 @@ exports.deleteAns = (req, res) => {
     { $pull: { answers: { _id: answer._id } } },
     { new: true }
   )
-    .populate('answers.postedBy', '_id userName')
-    .populate('postedBy', '_id userName')
+    .populate('answers.postedBy', '_id firstName')
+    .populate('postedBy', '_id firstName')
     .exec((err, result) => {
       if (err) return res.status(400).json({ error: err });
       else res.json(result);
@@ -209,8 +211,8 @@ exports.deleteAns = (req, res) => {
 
 exports.quesById = (req, res, next, id) => {
   Ques.findById(id)
-    .populate('postedBy', '_id userName')
-    .populate('answers.postedBy', '_id userName')
+    .populate('postedBy', '_id firstName')
+    .populate('answers.postedBy', '_id firstName')
     .select('_id title body satisfied tags created answers photo updated')
     .exec((err, ques) => {
       console.log('ERR & quesTT:', err, ' --- ', ques);
