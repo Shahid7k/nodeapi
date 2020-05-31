@@ -9,23 +9,27 @@ const { ObjectId } = mongoose.Types;
 exports.ask = (req, res) => {
   let form = new formidable.IncomingForm();
   form.keepExtensions = true;
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      return res.status(400).json({ error: "Image couldn't be uploaded!" });
-    }
-    let ques = new Ques(fields);
-    req.profile.hashedPassword = undefined;
-    req.profile.salt = undefined;
-    ques.postedBy = req.profile;
-    if (files.photo) {
-      (ques.photo.data = fs.readFileSync(files.photo.path)),
+  try{
+    form.parse(req, async(err, fields, files) => {
+      if (err) {
+        return res.status(400).json({ error: "Image couldn't be uploaded!" });
+      }
+      console.log("FIELDS : ",fields)
+      let ques = new Ques(fields);
+      req.profile.hashedPassword = undefined;
+      req.profile.salt = undefined;
+      ques.postedBy = req.profile;
+      if (files.photo) {
+        (ques.photo.data = fs.readFileSync(files.photo.path)),
         (ques.photo.contentType = files.photo.type);
-    }
-    ques.save((err, result) => {
-      if (err) return res.json({ error: err });
-      res.json(result);
+      }
+      const savedQues = await ques.save();
+      res.json(savedQues);
     });
-  });
+  }catch(error){
+    res.status(500).json({ error: error.message });
+  }
+
 };
 
 // exports.getQues = async (req, res) => {
@@ -39,7 +43,7 @@ exports.ask = (req, res) => {
 //         .then(count => {
 //             totalItems = count;
 //             return Ques.find()
-// 				.populate('postedBy', '_id userName')
+// 				.populate('postedBy', '_id firstName')
 // 				.sort({ created: -1 })
 // 				.skip((currentPage - 1) * perPage)
 // 				.limit(perPage)
@@ -53,7 +57,7 @@ exports.ask = (req, res) => {
 
 exports.getQA = (req, res) => {
   const ques = Ques.find()
-    .populate('postedBy', 'userName')
+    .populate('postedBy', 'firstName')
     .sort({ created: -1 })
     .select('title body photo satisfied tags created  answers updated')
     .then(ques => {
@@ -72,7 +76,7 @@ exports.quesCount = (req, res) => {
 exports.getQuesByUser = (req, res) => {
   console.log('REQ_PROFILE_ID:', req.profile._id);
   Ques.find({ postedBy: req.profile._id })
-    .populate('postedBy', '_id userName')
+    .populate('postedBy', '_id firstName')
     .select('_id title tags body satisfied created answers updated')
     .sort({ created: -1 })
     .exec((err, ques) => {
@@ -139,19 +143,21 @@ exports.singleQues = (req, res) => {
 
 exports.answer = (req, res) => {
   let answer = req.body.answer;
+  console.log("answer : ",answer.answer)
+  answer.text=answer.answer;
   answer.postedBy = req.body.userId;
   Ques.findByIdAndUpdate(
     req.body.quesId,
     { $push: { answers: answer } },
     { new: true }
   )
-    .populate('answers.postedBy', '_id userName')
-    .populate('postedBy', '_id userName')
+    .populate('answers.postedBy', '_id firstName')
+    .populate('postedBy', '_id firstName')
     .sort({ created: -1 })
     .exec((err, result) => {
       if (err) return res.status(400).json({ error: err });
       else {
-        console.log('answer - ', result);
+        console.log('Response - ', result);
         return res.json(result);
       }
     });
@@ -195,8 +201,8 @@ exports.deleteAns = (req, res) => {
     { $pull: { answers: { _id: answer._id } } },
     { new: true }
   )
-    .populate('answers.postedBy', '_id userName')
-    .populate('postedBy', '_id userName')
+    .populate('answers.postedBy', '_id firstName')
+    .populate('postedBy', '_id firstName')
     .exec((err, result) => {
       if (err) return res.status(400).json({ error: err });
       else res.json(result);
@@ -205,8 +211,8 @@ exports.deleteAns = (req, res) => {
 
 exports.quesById = (req, res, next, id) => {
   Ques.findById(id)
-    .populate('postedBy', '_id userName')
-    .populate('answers.postedBy', '_id userName')
+    .populate('postedBy', '_id firstName')
+    .populate('answers.postedBy', '_id firstName')
     .select('_id title body satisfied tags created answers photo updated')
     .exec((err, ques) => {
       console.log('ERR & quesTT:', err, ' --- ', ques);
