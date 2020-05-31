@@ -43,11 +43,8 @@ exports.allUsers = (req, res) => {
 exports.countUsers = (req, res) => {
   User.find((err, users) => {
     if (err) return res.json({ error: err });
-    res.json({length: users.length });
-  })
-    .select(
-      ' _id '
-    )
+    res.json({ length: users.length });
+  }).select(' _id ');
 };
 
 exports.getUser = (req, res) => {
@@ -97,7 +94,7 @@ exports.getUser = (req, res) => {
 exports.updateUser = (req, res) => {
   const conditions = { _id: req.params.userId };
 
-  console.log(req.body);
+  // console.log(req.body);
   User.findOneAndUpdate(conditions, req.body)
     .then(doc => {
       if (!doc) {

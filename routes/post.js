@@ -28,7 +28,7 @@ router.delete(
 router.put(
   '/post/:postId',
   requireSignIn,
-  postController.isPoster,
+  // postController.isPoster,
   postController.updatePost
 );
 router.get('/blog/photo/:postId', postController.blogPic);

@@ -55,7 +55,7 @@ exports.getPosts = async (req, res) => {
 exports.postsCount = (req, res) => {
   const post = Post.find()
     .select('_id')
-    .then(posts => res.status(200).json({length: posts.length }))
+    .then(posts => res.status(200).json({ length: posts.length }))
     .catch(err => console.log(err));
 };
 
@@ -95,11 +95,11 @@ exports.getPostsByUser = async (req, res) => {
 
 exports.postById = (req, res, next, id) => {
   Post.findById(id)
-    .populate('postedBy', '_id userName')
-    .populate('comments.postedBy', '_id userName')
+    .populate('postedBy', '_id firstName')
+    .populate('comments.postedBy', '_id firstName')
     .select('_id title content description created likes comments  updated')
     .exec((err, post) => {
-      console.log('ERR & POSTTT:', err, ' --- ', post);
+      console.log('ERR & POSTTT: Ho ho ho', err, ' --- ', post);
       if (err || !post) {
         return res.status(400).json({
           error: err,
@@ -134,34 +134,49 @@ exports.deletePost = (req, res) => {
   });
 };
 
+// exports.updatePost = (req, res, next) => {
+//   let form = new formidable.IncomingForm();
+//   form.keepExtensions = true;
+//   form.parse(req, (err, fields, files) => {
+//     if (err) {
+//       return res.status(400).json({
+//         error: 'Photo could not be uploaded',
+//       });
+//     }
+//     // save post
+//     let post = req.post;
+//     post = _.extend(post, fields);
+//     post.updated = Date.now();
+
+//     if (files.photo) {
+//       post.photo.data = fs.readFileSync(files.photo.path);
+//       post.photo.contentType = files.photo.type;
+//     }
+
+//     post.save((err, result) => {
+//       if (err) {
+//         return res.status(400).json({
+//           error: err,
+//         });
+//       }
+//       res.json(post);
+//     });
+//   });
+// };
+
 exports.updatePost = (req, res, next) => {
-  let form = new formidable.IncomingForm();
-  form.keepExtensions = true;
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      return res.status(400).json({
-        error: 'Photo could not be uploaded',
-      });
-    }
-    // save post
-    let post = req.post;
-    post = _.extend(post, fields);
-    post.updated = Date.now();
+  const conditions = { _id: req.params.postId };
 
-    if (files.photo) {
-      post.photo.data = fs.readFileSync(files.photo.path);
-      post.photo.contentType = files.photo.type;
-    }
-
-    post.save((err, result) => {
-      if (err) {
-        return res.status(400).json({
-          error: err,
-        });
+  console.log('Post Id', req.params.postId);
+  console.log('Edit Post', req.body);
+  Post.findOneAndUpdate(conditions, req.body)
+    .then(doc => {
+      if (!doc) {
+        return res.status(404).end();
       }
-      res.json(post);
-    });
-  });
+      return res.status(200).json(doc);
+    })
+    .catch(err => next(err));
 };
 
 exports.blogPic = (req, res, next) => {
