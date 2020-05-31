@@ -70,7 +70,7 @@ exports.signout = (req, res) => {
 exports.requireSignIn = expressJwt({
   secret: process.env.JWT_SECRET,
   getToken: function fromHeaderOrQuerystring(req) {
-    console.log(req.headers);
+    // console.log('Changed headers', req.headers);
     if (
       req.headers.authorization &&
       req.headers.authorization.split(' ')[0] === 'Bearer'
