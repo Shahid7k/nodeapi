@@ -70,9 +70,9 @@ exports.postsCount = (req, res) => {
 // }
 
 exports.getPostsByUser = async (req, res) => {
-  const posts = await Post.find({ postedBy: req.params.userId }).select(
-    '-content'
-  );
+  const posts = await Post.find({ postedBy: req.params.userId })
+    .select('-content')
+    .sort({ created: -1 });
 
   // console.log('posts', posts);
 
@@ -97,9 +97,9 @@ exports.postById = (req, res, next, id) => {
   Post.findById(id)
     .populate('postedBy', '_id firstName')
     .populate('comments.postedBy', '_id firstName')
-    .select('_id title content description created likes comments  updated')
+    .select('_id title content description created likes comments updated')
     .exec((err, post) => {
-      console.log('ERR & POSTTT: Ho ho ho', err, ' --- ', post);
+      console.log('ERR & POSTTT: ', err, ' --- ', post);
       if (err || !post) {
         return res.status(400).json({
           error: err,
@@ -111,58 +111,29 @@ exports.postById = (req, res, next, id) => {
 };
 
 exports.isPoster = (req, res, next) => {
-  let _isPoster = req.post && req.auth && req.post.postedBy._id == req.auth._id;
-  console.log('req post = ', req.post);
-  console.log('-------------------');
-  console.log('req.auth: ', req.auth);
-  console.log('-------------------');
-  console.log('req post ====== ', req.post);
-  console.log('req.post.postedBy._id : ', req.post.postedBy._id);
-  console.log('-------------------');
-  console.log('req.auth._id : ', req.auth._id);
+  let _isPoster = req.post && req.user && req.post.postedBy._id == req.user._id;
+  // console.log('req post = ', req.post);
+  // console.log('-------------------');
+  // console.log('req.user: ', req.user);
+  // console.log('-------------------');
+  // console.log('req post ====== ', req.post);
+  // console.log('req.post.postedBy._id : ', req.post.postedBy._id);
+  // console.log('-------------------');
+  console.log('req.user._id : ', req.user._id);
 
   if (!_isPoster) return res.json({ error: 'User not authorized' });
   next();
 };
 
-exports.deletePost = (req, res) => {
-  let post = req.post;
-  post.remove((err, post) => {
-    if (err || !post) return res.json({ error: err });
-    // const msg="Deleted the post!"+post;
-    res.json({ message: 'Deleted Post!' });
-  });
+exports.deletePost = (req, res, next) => {
+  const conditions = { _id: req.params.postId };
+
+  const message = 'Post Deleted';
+
+  Post.deleteOne(conditions)
+    .then(() => res.status(200).json(message))
+    .catch(err => next(err));
 };
-
-// exports.updatePost = (req, res, next) => {
-//   let form = new formidable.IncomingForm();
-//   form.keepExtensions = true;
-//   form.parse(req, (err, fields, files) => {
-//     if (err) {
-//       return res.status(400).json({
-//         error: 'Photo could not be uploaded',
-//       });
-//     }
-//     // save post
-//     let post = req.post;
-//     post = _.extend(post, fields);
-//     post.updated = Date.now();
-
-//     if (files.photo) {
-//       post.photo.data = fs.readFileSync(files.photo.path);
-//       post.photo.contentType = files.photo.type;
-//     }
-
-//     post.save((err, result) => {
-//       if (err) {
-//         return res.status(400).json({
-//           error: err,
-//         });
-//       }
-//       res.json(post);
-//     });
-//   });
-// };
 
 exports.updatePost = (req, res, next) => {
   const conditions = { _id: req.params.postId };
@@ -192,53 +163,46 @@ exports.singlePost = (req, res) => {
   return res.json(req.post);
 };
 
-exports.like = (req, res) => {
+exports.like = (req, res, next) => {
   Post.findByIdAndUpdate(
     req.body.postId,
     { $push: { likes: req.body.userId } },
     { new: true }
-  ).exec((err, result) => {
-    if (err) return res.json({ error: err });
-    else {
-      res.json(result);
-    }
-  });
+  )
+    .populate('postedBy', '_id firstName')
+    .then(result => res.status(200).json(result))
+    .catch(err => next(err));
 };
 
-exports.unlike = (req, res) => {
+exports.unlike = (req, res, next) => {
   Post.findByIdAndUpdate(
     req.body.postId,
     { $pull: { likes: req.body.userId } },
     { new: true }
-  ).exec((err, result) => {
-    if (err) return res.json({ error: err });
-    else {
-      res.json(result);
-    }
-  });
+  )
+    .populate('postedBy', '_id firstName')
+    .then(result => res.status(200).json(result))
+    .catch(err => next(err));
 };
 
-exports.comment = (req, res) => {
-  let comment = req.body.comment;
+exports.comment = (req, res, next) => {
+  let comment = req.body;
   comment.postedBy = req.body.userId;
+  comment.text = req.body.comment;
+
   Post.findByIdAndUpdate(
-    req.body.postId,
+    req.body.blogId,
     { $push: { comments: comment } },
     { new: true }
   )
-    .populate('comments.postedBy', '_id userName')
-    .populate('postedBy', '_id userName')
+    .populate('comments.postedBy', '_id firstName')
+    .populate('postedBy', '_id firstName')
     .sort({ created: -1 })
-    .exec((err, result) => {
-      if (err) return res.status(400).json({ error: err });
-      else {
-        console.log('COMMENT - ', result);
-        return res.json(result);
-      }
-    });
+    .then(result => res.status(200).json(result))
+    .catch(err => next(err));
 };
 
-exports.uncomment = (req, res) => {
+exports.uncomment = (req, res, next) => {
   let comment = req.body.comment;
   comment.postedBy = req.body.userId;
   Post.findByIdAndUpdate(
@@ -246,10 +210,8 @@ exports.uncomment = (req, res) => {
     { $pull: { comments: { _id: comment._id } } },
     { new: true }
   )
-    .populate('comments.postedBy', '_id userName')
-    .populate('postedBy', '_id userName')
-    .exec((err, result) => {
-      if (err) return res.status(400).json({ error: err });
-      else res.json(result);
-    });
+    .populate('comments.postedBy', '_id firstName')
+    .populate('postedBy', '_id firstName')
+    .then(result => res.status(200).json(result))
+    .catch(err => next(err));
 };
