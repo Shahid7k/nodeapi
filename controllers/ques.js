@@ -101,31 +101,29 @@ exports.deleteQues = (req, res) => {
 exports.updateQues = (req, res, next) => {
   let form = new formidable.IncomingForm();
   form.keepExtensions = true;
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      return res.status(400).json({
-        error: 'Photo could not be uploaded',
-      });
-    }
-    // save post
-    let ques = req.ques;
-    ques = _.extend(ques, fields);
-    ques.updated = Date.now();
-    console.log('FILES PHOTO-', files.photo);
-    if (files.photo) {
-      ques.photo.data = fs.readFileSync(files.photo.path);
-      ques.photo.contentType = files.photo.type;
-    }
-
-    ques.save((err, result) => {
+  try{
+    form.parse(req,async (err, fields, files) => {
       if (err) {
         return res.status(400).json({
-          error: err,
+          error: 'Photo could not be uploaded',
         });
       }
-      res.json(ques);
+      // save post
+      let ques = req.ques;
+      ques = _.extend(ques, fields);
+      ques.updated = Date.now();
+      console.log('FILES PHOTO-', JSON.stringify(files.photo));
+      if (files.photo) {
+        ques.photo.data = fs.readFileSync(files.photo.path);
+        ques.photo.contentType = files.photo.type;
+      }
+      const savedQues = await ques.save();
+      res.json(savedQues);
+      
     });
-  });
+  }catch(error){
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.quesPic = (req, res, next) => {

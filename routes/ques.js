@@ -23,14 +23,14 @@ router.get('/qa/:quesId', quesController.singleQues);
 router.delete(
   '/qa/:quesId',
   requireSignIn,
-  quesController.isPoster,
+  // quesController.isPoster,
   quesController.deleteQues
 );
 
 router.put(
   '/qa/:quesId',
   requireSignIn,
-  quesController.isPoster,
+  // quesController.isPoster,
   quesController.updateQues
 );
 router.get('/qa/photo/:quesId', quesController.quesPic);
