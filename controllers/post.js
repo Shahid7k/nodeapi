@@ -70,9 +70,9 @@ exports.postsCount = (req, res) => {
 // }
 
 exports.getPostsByUser = async (req, res) => {
-  const posts = await Post.find({ postedBy: req.params.userId }).select(
-    '-content'
-  );
+  const posts = await Post.find({ postedBy: req.params.userId })
+    .select('-content')
+    .sort({ created: -1 });
 
   // console.log('posts', posts);
 
@@ -97,7 +97,7 @@ exports.postById = (req, res, next, id) => {
   Post.findById(id)
     .populate('postedBy', '_id firstName')
     .populate('comments.postedBy', '_id firstName')
-    .select('_id title content description created likes comments  updated')
+    .select('_id title content description created likes comments updated')
     .exec((err, post) => {
       console.log('ERR & POSTTT: ', err, ' --- ', post);
       if (err || !post) {
@@ -111,58 +111,29 @@ exports.postById = (req, res, next, id) => {
 };
 
 exports.isPoster = (req, res, next) => {
-  let _isPoster = req.post && req.auth && req.post.postedBy._id == req.auth._id;
-  console.log('req post = ', req.post);
-  console.log('-------------------');
-  console.log('req.auth: ', req.auth);
-  console.log('-------------------');
-  console.log('req post ====== ', req.post);
-  console.log('req.post.postedBy._id : ', req.post.postedBy._id);
-  console.log('-------------------');
-  console.log('req.auth._id : ', req.auth._id);
+  let _isPoster = req.post && req.user && req.post.postedBy._id == req.user._id;
+  // console.log('req post = ', req.post);
+  // console.log('-------------------');
+  // console.log('req.user: ', req.user);
+  // console.log('-------------------');
+  // console.log('req post ====== ', req.post);
+  // console.log('req.post.postedBy._id : ', req.post.postedBy._id);
+  // console.log('-------------------');
+  console.log('req.user._id : ', req.user._id);
 
   if (!_isPoster) return res.json({ error: 'User not authorized' });
   next();
 };
 
-exports.deletePost = (req, res) => {
-  let post = req.post;
-  post.remove((err, post) => {
-    if (err || !post) return res.json({ error: err });
-    // const msg="Deleted the post!"+post;
-    res.json({ message: 'Deleted Post!' });
-  });
+exports.deletePost = (req, res, next) => {
+  const conditions = { _id: req.params.postId };
+
+  const message = 'Post Deleted';
+
+  Post.deleteOne(conditions)
+    .then(() => res.status(200).json(message))
+    .catch(err => next(err));
 };
-
-// exports.updatePost = (req, res, next) => {
-//   let form = new formidable.IncomingForm();
-//   form.keepExtensions = true;
-//   form.parse(req, (err, fields, files) => {
-//     if (err) {
-//       return res.status(400).json({
-//         error: 'Photo could not be uploaded',
-//       });
-//     }
-//     // save post
-//     let post = req.post;
-//     post = _.extend(post, fields);
-//     post.updated = Date.now();
-
-//     if (files.photo) {
-//       post.photo.data = fs.readFileSync(files.photo.path);
-//       post.photo.contentType = files.photo.type;
-//     }
-
-//     post.save((err, result) => {
-//       if (err) {
-//         return res.status(400).json({
-//           error: err,
-//         });
-//       }
-//       res.json(post);
-//     });
-//   });
-// };
 
 exports.updatePost = (req, res, next) => {
   const conditions = { _id: req.params.postId };
