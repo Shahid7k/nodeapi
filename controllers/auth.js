@@ -22,8 +22,8 @@ exports.signup = async (req, res) => {
     //persist token with expiry date
 
     //return response with user details and token
-    const { _id, firstName } = savedUser;
-    return res.json({ token, user: { _id, firstName } });
+    const { _id, firstName, darkEnabled } = savedUser;
+    return res.json({ token, user: { _id, firstName, darkEnabled } });
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
@@ -58,8 +58,8 @@ exports.signin = (req, res) => {
     //persist token with expiry date
 
     //return response with user details and token
-    const { _id, firstName } = user;
-    return res.json({ token, user: { _id, firstName } });
+    const { _id, firstName, darkEnabled } = user;
+    return res.json({ token, user: { _id, firstName, darkEnabled } });
   });
 };
 
