@@ -99,7 +99,7 @@ exports.postById = (req, res, next, id) => {
     .populate('comments.postedBy', '_id firstName')
     .select('_id title content description created likes comments updated')
     .exec((err, post) => {
-      console.log('ERR & POSTTT: ', err, ' --- ', post);
+      // console.log('ERR & POSTTT: ', err, ' --- ', post);
       if (err || !post) {
         return res.status(400).json({
           error: err,
@@ -202,12 +202,13 @@ exports.comment = (req, res, next) => {
     .catch(err => next(err));
 };
 
-exports.uncomment = (req, res, next) => {
+exports.uncomment = async (req, res, next) => {
   let comment = req.body.comment;
   comment.postedBy = req.body.userId;
+
   Post.findByIdAndUpdate(
-    req.body.postId,
-    { $pull: { comments: { _id: comment._id } } },
+    req.body.blogId,
+    { $pull: { comments: { _id: comment } } },
     { new: true }
   )
     .populate('comments.postedBy', '_id firstName')
