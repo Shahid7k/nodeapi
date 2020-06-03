@@ -9,27 +9,26 @@ const { ObjectId } = mongoose.Types;
 exports.ask = (req, res) => {
   let form = new formidable.IncomingForm();
   form.keepExtensions = true;
-  try{
-    form.parse(req, async(err, fields, files) => {
+  try {
+    form.parse(req, async (err, fields, files) => {
       if (err) {
         return res.status(400).json({ error: "Image couldn't be uploaded!" });
       }
-      console.log("FIELDS : ",fields)
+      console.log('FIELDS : ', fields);
       let ques = new Ques(fields);
       req.profile.hashedPassword = undefined;
       req.profile.salt = undefined;
       ques.postedBy = req.profile;
       if (files.photo) {
         (ques.photo.data = fs.readFileSync(files.photo.path)),
-        (ques.photo.contentType = files.photo.type);
+          (ques.photo.contentType = files.photo.type);
       }
       const savedQues = await ques.save();
       res.json(savedQues);
     });
-  }catch(error){
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
-
 };
 
 // exports.getQues = async (req, res) => {
@@ -69,7 +68,7 @@ exports.getQA = (req, res) => {
 exports.quesCount = (req, res) => {
   const ques = Ques.find()
     .select('_id')
-    .then(ques => res.status(200).json({length:ques.length }))
+    .then(ques => res.status(200).json({ length: ques.length }))
     .catch(err => console.log(err));
 };
 
@@ -101,8 +100,8 @@ exports.deleteQues = (req, res) => {
 exports.updateQues = (req, res, next) => {
   let form = new formidable.IncomingForm();
   form.keepExtensions = true;
-  try{
-    form.parse(req,async (err, fields, files) => {
+  try {
+    form.parse(req, async (err, fields, files) => {
       if (err) {
         return res.status(400).json({
           error: 'Photo could not be uploaded',
@@ -119,9 +118,8 @@ exports.updateQues = (req, res, next) => {
       }
       const savedQues = await ques.save();
       res.json(savedQues);
-      
     });
-  }catch(error){
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
@@ -141,8 +139,8 @@ exports.singleQues = (req, res) => {
 
 exports.answer = (req, res) => {
   let answer = req.body.answer;
-  console.log("answer : ",answer.answer)
-  answer.text=answer.answer;
+  console.log('answer : ', answer.answer);
+  answer.text = answer.answer;
   answer.postedBy = req.body.userId;
   Ques.findByIdAndUpdate(
     req.body.quesId,
@@ -213,7 +211,7 @@ exports.quesById = (req, res, next, id) => {
     .populate('answers.postedBy', '_id firstName')
     .select('_id title body satisfied tags created answers photo updated')
     .exec((err, ques) => {
-      console.log('ERR & quesTT:', err, ' --- ', ques);
+      // console.log('ERR & quesTT:', err, ' --- ', ques);
       if (err || !ques) {
         return res.status(400).json({
           error: err,
