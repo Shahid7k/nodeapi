@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema({
   },
   darkEnabled: {
     type: Boolean,
-    default:false
+    default: false,
   },
   // following:[{type:ObjectId,ref:"User"}],
   // followers:[{type:ObjectId,ref:"User"}]
