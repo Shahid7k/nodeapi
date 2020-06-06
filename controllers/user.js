@@ -6,9 +6,9 @@ const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Types;
 
 exports.userById = (req, res, next, id) => {
-  console.log('IDDD=', id);
-  console.log('IIIID-', req.params.userId);
-  console.log('typeOF -', ObjectId(id));
+  // console.log('IDDD=', id);
+  // console.log('IIIID-', req.params.userId);
+  // console.log('typeOF -', ObjectId(id));
   User.findById(ObjectId(req.params.userId)).exec((err, user) => {
     if (err || !user) {
       console.log('error and user -', err, ' && ', user);
