@@ -27,7 +27,10 @@ exports.getPosts = async (req, res) => {
   // const perPage = 8;
   // let totalItems;
 
-  const posts = await Post.find({}).select('-content').sort({ created: -1 });
+  const posts = await Post.find({})
+    .populate('postedBy', '_id firstName lastName')
+    .select('-content')
+    .sort({ created: -1 });
 
   // console.log(res);
   // console.log(posts);
