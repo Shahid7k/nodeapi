@@ -2,7 +2,7 @@
 const uuidv1 = require('uuid');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
-const { ObjectId } = mongoose.Schema;
+// const { ObjectId } = mongoose.Schema;
 
 var validateEmail = function (email) {
   var re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -76,7 +76,6 @@ userSchema
 //methods to schema
 userSchema.methods = {
   authenticate: function (plainText) {
-    console.log('reached 2');
     return this.encryptPassword(plainText) === this.hashedPassword;
   },
 

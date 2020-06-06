@@ -6,12 +6,8 @@ const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Types;
 
 exports.userById = (req, res, next, id) => {
-  // console.log('IDDD=', id);
-  // console.log('IIIID-', req.params.userId);
-  // console.log('typeOF -', ObjectId(id));
   User.findById(ObjectId(req.params.userId)).exec((err, user) => {
     if (err || !user) {
-      console.log('error and user -', err, ' && ', user);
       return res.status(400).json({
         error: 'User not found',
       });
@@ -50,51 +46,13 @@ exports.countUsers = (req, res) => {
 exports.getUser = (req, res) => {
   req.profile.hashedPassword = undefined;
   req.profile.salt = undefined;
-  console.log('getUser ', req.profile);
+
   return res.json(req.profile);
 };
-
-// exports.updateUser = (req, res,next ) =>{
-//     let user=req.profile
-//     user = _.extend(user, req.body) // extends or mutates the source object
-//     user.updated=Date.now()
-//     user.save((err)=>{
-//         if(err) return res.json({error:"You are not authorized to make changes here"})
-//         user.hashedPassword=undefined;
-//         user.salt=undefined;
-
-//         res.json({user})
-//     })
-
-// }
-
-// exports.updateUser = (req, res, next) => {
-//   let form = new formidable.IncomingForm();
-//   form.keepExtensions = true;
-//   form.parse(req, (err, fields, files) => {
-//     if (err) {
-//       return res.json({ error: "Photo couldn't be uploaded" });
-//     }
-//     let user = req.profile;
-//     user = _.extend(user, fields);
-//     user.updated = Date.now();
-//     if (files.photo) {
-//       user.photo.data = fs.readFileSync(files.photo.path);
-//       user.photo.contentType = files.photo.type;
-//     }
-//     user.save((err, result) => {
-//       if (err) return res.json({ error: err });
-//       user.hashedPassword = undefined;
-//       user.salt = undefined;
-//       res.json(user);
-//     });
-//   });
-// };
 
 exports.updateUser = (req, res) => {
   const conditions = { _id: req.params.userId };
 
-  // console.log(req.body);
   User.findOneAndUpdate(conditions, req.body)
     .then(doc => {
       if (!doc) {
@@ -109,7 +67,6 @@ exports.deleteUser = (req, res) => {
   let user = req.profile;
   user.remove((err, user) => {
     if (err) {
-      console.log('Error in deleting: ', err);
       return res.json({ error: err });
     }
     res.json({ message: 'User Account Deleted!' });
@@ -123,6 +80,7 @@ exports.userPic = (req, res, next) => {
   }
   next();
 };
+
 exports.addFollowing = (req, res, next) => {
   User.findByIdAndUpdate(
     req.body.userId,
